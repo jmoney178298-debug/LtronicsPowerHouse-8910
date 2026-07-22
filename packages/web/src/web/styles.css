@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* === LTRONICS POWERHOUSE KINGZ — TX × CO Color System === */
+  --bg: #080608;           /* near-black dark base */
+  --bg-alt: #0d0b0f;       /* section alternate */
+  --card: #121018;         /* card surfaces */
+
+  /* Texas orange */
+  --tx: #e8600a;
+  --tx-soft: rgba(232, 96, 10, 0.14);
+  --tx-glow: rgba(232, 96, 10, 0.35);
+
+  /* Colorado blue */
+  --co: #00aaff;
+  --co-soft: rgba(0, 170, 255, 0.12);
+  --co-glow: rgba(0, 170, 255, 0.3);
+
+  /* Primary accent = TX orange (CTAs, prices, featured) */
+  --accent: #e8600a;
+  --accent-soft: rgba(232, 96, 10, 0.14);
+
+  /* Secondary accent = CO blue (hover, highlights, tags) */
+  --accent2: #00aaff;
+  --accent2-soft: rgba(0, 170, 255, 0.12);
+
+  /* Logo gold (brand name text) */
+  --brand-gold: #c9922a;
+
+  /* Red eyes from skull */
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.15);
+
+  --text: #f5f0eb;
+  --muted: #8a8090;
+  --border: #1e1820;
+  --border-bright: #2a2030;
+  --radius: 8px;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', system-ui, sans-serif;
+  background-color: var(--bg);
+  /* Graffiti-wall dark bg matching logo's dark backdrop */
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(232,96,10,0.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 0%, rgba(0,170,255,0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(201,146,42,0.04) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.font-editorial {
+  font-family: 'Playfair Display', serif;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STREET ↔ CROWN — the fault line system
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --fault: 0;
+}
+
+.fault-street,
+.fault-crown {
+  position: absolute;
+  inset: -5% -5%;
+  background-size: 480px 480px;
+  background-repeat: repeat;
+}
+
+.fault-street {
+  background-image:
+    linear-gradient(180deg, rgba(8,6,8,0.88), rgba(8,6,8,0.94)),
+    url('/textures/street-texture_1783410691822.png');
+}
+
+.fault-crown {
+  background-image:
+    linear-gradient(180deg, rgba(8,6,8,0.8), rgba(8,6,8,0.9)),
+    url('/textures/marble-texture_1783410691822.png');
+  clip-path: polygon(0% 100%, 100% 42%, 100% 100%);
+  transform: translateY(calc((1 - var(--fault)) * 120%));
+  transition: transform 0.05s linear;
+  will-change: transform;
+}
+
+.fault-seam {
+  position: absolute;
+  inset: -5% -5%;
+  clip-path: polygon(0% 100%, 100% 42%, 100% calc(42% + 3px), 0% calc(100% + 3px));
+  background: linear-gradient(90deg, var(--tx) 0%, var(--brand-gold) 50%, var(--co) 100%);
+  transform: translateY(calc((1 - var(--fault)) * 120%));
+  transition: transform 0.05s linear;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px rgba(232,96,10,0.5)) drop-shadow(0 0 12px rgba(0,170,255,0.4));
+}
+
+.fault-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(232,96,10,0.05) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 100%, rgba(0,170,255,0.06) 0%, transparent 45%);
+}
+
+/* Corner texture wash for cards — street grit top-left, gold marble bottom-right */
+.fault-card {
+  position: relative;
+  isolation: isolate;
+}
+.fault-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, var(--tx) 0%, var(--brand-gold) 50%, var(--co) 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.fault-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 46px; height: 46px;
+  background-image: url('/textures/street-texture_1783410691822.png');
+  background-size: 200px 200px;
+  opacity: 0.16;
+  border-radius: inherit;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  pointer-events: none;
+}
+.fault-card:hover::before { opacity: 0.35; }
+
+.fault-card-gold {
+  position: relative;
+}
+.fault-card-gold::before {
+  content: "";
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 46px; height: 46px;
+  background-image: url('/textures/marble-texture_1783410691822.png');
+  background-size: 200px 200px;
+  opacity: 0.22;
+  clip-path: polygon(100% 100%, 100% 0, 0 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Two-tone diagonal fill for primary CTAs */
+.fault-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(115deg, var(--tx) 0%, var(--tx) 55%, var(--brand-gold) 78%, var(--co) 100%);
+  background-size: 220% 100%;
+  background-position: 0% 0%;
+  transition: background-position 0.4s ease;
+}
+.fault-btn:hover {
+  background-position: 100% 0%;
+}
+
+/* Jagged diagonal section divider */
+.fault-divider {
+  height: 48px;
+  background: linear-gradient(90deg, rgba(232,96,10,0.12), rgba(201,146,42,0.1), rgba(0,170,255,0.12));
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+.fault-divider-rev {
+  height: 48px;
+  background: linear-gradient(90deg, rgba(0,170,255,0.12), rgba(201,146,42,0.1), rgba(232,96,10,0.12));
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb {
+  background: rgba(232,96,10,0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--tx); }
+
+/* TX/CO dual glow utility */
+.dual-glow {
+  box-shadow:
+    -8px 0 24px rgba(232, 96, 10, 0.2),
+     8px 0 24px rgba(0, 170, 255, 0.2);
+}
+
+.tx-glow {
+  box-shadow: 0 0 20px rgba(232,96,10,0.3), 0 0 40px rgba(232,96,10,0.1);
+}
+
+.co-glow {
+  box-shadow: 0 0 20px rgba(0,170,255,0.3), 0 0 40px rgba(0,170,255,0.1);
+}
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Cart slide animation */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes txPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(232,96,10,0.4); }
+  50% { box-shadow: 0 0 24px rgba(232,96,10,0.7), 0 0 40px rgba(232,96,10,0.3); }
+}
+@keyframes coPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(0,170,255,0.4); }
+  50% { box-shadow: 0 0 24px rgba(0,170,255,0.7), 0 0 40px rgba(0,170,255,0.3); }
+}
+
+.animate-slide-in { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-fade-in { animation: fadeIn 0.2s ease; }
+.animate-fade-up { animation: fadeUp 0.5s ease forwards; }
+.animate-tx-pulse { animation: txPulse 2.5s ease-in-out infinite; }
+.animate-co-pulse { animation: coPulse 2.5s ease-in-out infinite; }
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeUp 0.5s ease forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* TX/CO split divider */
+.tx-co-divider {
+  height: 2px;
+  background: linear-gradient(90deg, var(--tx) 0%, rgba(201,146,42,0.6) 50%, var(--co) 100%);
+}

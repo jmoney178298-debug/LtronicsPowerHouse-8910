@@ -1,0 +1,41 @@
+{
+  "name": "sandbox-app-template",
+  "private": true,
+  "packageManager": "bun@1.3.5",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "cd packages/web && bunx vite",
+    "dev:desktop": "cd packages/desktop && bunx vite",
+    "dev:mobile": "cd packages/mobile && bunx expo start",
+    "start": "pm2 delete web-app 2>/dev/null || true; pm2 start ecosystem.config.cjs --update-env",
+    "build": "turbo build",
+    "build:web": "cd packages/web && bunx vite build",
+    "lint": "oxlint . --deny-warnings --no-error-on-unmatched-pattern",
+    "lint:fix": "oxlint . --fix --deny-warnings --no-error-on-unmatched-pattern",
+    "typecheck": "turbo typecheck",
+    "db:generate": "turbo db:generate",
+    "db:migrate": "turbo db:migrate",
+    "db:push": "turbo db:push",
+    "db:studio": "turbo db:studio",
+    "kill:port": "lsof -t -i :${PORT:-4200} | xargs kill -9"
+  },
+  "devDependencies": {
+    "@tursodatabase/api": "^1.9.2",
+    "@types/bun": "latest",
+    "oxlint": "^1.66.0",
+    "turbo": "^2"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1023.0",
+    "@libsql/client": "^0.17.2",
+    "cloudflare": "^5.2.0",
+    "pm2": "^7.0.1",
+    "square": "^44.1.0",
+    "squareup": "^1.0.0"
+  }
+}
