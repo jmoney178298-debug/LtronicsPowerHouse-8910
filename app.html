@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>AIU: Amp It Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0B0F1A;--paper:#F4F6FA;--white:#fff;--volt:#4F5BFF;--lilac:#8B7BFF;--blaze:#FF7A3D;--lime:#19E6B4;--stone:#5B6475;--mist:#9AA3B5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*:before,*:after{box-sizing:inherit}html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font:500 15px/1.5 'Inter',system-ui,sans-serif;display:flex}
+.side{width:240px;background:var(--ink);border-right:1px solid rgba(255,255,255,.08);color:var(--paper);padding:20px 14px;display:flex;flex-direction:column;gap:6px;flex:none}
+.logo{font:800 34px/1.05 'Inter',system-ui,sans-serif;padding:4px 10px 18px}
+.logo i{color:var(--lime)}
+.nav{background:none;border:0;color:var(--mist);text-align:left;padding:10px 14px;border-radius:999px;font:600 15px 'Inter',sans-serif;cursor:pointer}
+.nav.on{color:var(--ink)}
+main{flex:1;overflow:auto;padding:28px;min-width:0}
+h1{font:800 clamp(40px,7vw,72px)/1.05 'Inter',system-ui,sans-serif;margin:0 0 6px;padding-left:16px;border-left:6px solid var(--tab,var(--volt))}
+h1 i{font-style:italic}
+.sub{color:var(--stone);margin:0 0 22px 22px}
+.card{background:var(--white);border:1px solid rgba(9,7,8,.1);border-radius:16px;box-shadow:0 1px 2px rgba(11,15,26,.06),0 10px 28px rgba(11,15,26,.05);padding:18px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:600;color:var(--stone);margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--white);border:1px solid rgba(9,7,8,.15);border-radius:10px;padding:10px 12px;font:inherit;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--volt);outline-offset:1px}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:999px;padding:10px 20px;font:600 14px 'Inter',sans-serif;cursor:pointer}
+.btn.acc{background:var(--c,var(--volt));border-color:var(--c,var(--volt));color:#fff}
+.btn.ghost{background:none;color:var(--ink)}
+.btn:focus-visible,.nav:focus-visible{outline:2px solid var(--volt);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mono{font-family:'JetBrains Mono',monospace;font-weight:600}
+.stat{font:800 54px/1 'Inter',system-ui,sans-serif;}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;background:var(--paper)}
+iframe{width:100%;height:520px;border:1px solid rgba(9,7,8,.15);border-radius:10px;background:#fff}
+.tabs{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.tabs button{border:1px solid var(--ink);background:none;border-radius:999px;padding:5px 14px;font:600 13px 'Inter';cursor:pointer}
+.tabs button.on{background:var(--ink);color:var(--paper)}
+pre{white-space:pre-wrap;background:var(--paper);border-radius:10px;padding:12px;font:13px/1.5 'JetBrains Mono',monospace;margin:8px 0}
+.fade>*{animation:up .5s both}.fade>*:nth-child(2){animation-delay:.08s}.fade>*:nth-child(3){animation-delay:.16s}.fade>*:nth-child(4){animation-delay:.24s}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+@media(prefers-reduced-motion:reduce){.fade>*{animation:none}}
+@media(max-width:800px){body{flex-direction:column}.side{width:100%;flex-direction:row;overflow-x:auto;padding:10px;align-items:center}.logo{padding:0 10px;font-size:26px}.nav{white-space:nowrap;padding:8px 12px}main{padding:18px}}
+h1,h2,.stat,.logo,.price{letter-spacing:-.035em}h1 i,h2 i{font-style:normal;color:var(--tab,var(--volt))}.logo i{font-style:normal}</style></head><body>
+<nav class="side" id="side"></nav><main id="main"></main>
+<script>
+const $=s=>document.querySelector(s);
+const MODS={ai:['AI','var(--volt)','#6945FE'],studio:['Studio','var(--volt)','#6945FE'],leads:['Leads','var(--blaze)','#FD5A13'],pipeline:['Pipeline','var(--blaze)','#FD5A13'],ads:['Listings','var(--lime)','#CBE13B'],revenue:['Revenue','var(--lime)','#CBE13B'],settings:['Settings','var(--lilac)','#B97AFD']};
+let db={prospects:[],sites:[],set:{agency:'Ltronics PowerHouse',pay:'https://buy.stripe.com/aFa5kCgV0gvq5Qv0rG8k801',sub:'https://buy.stripe.com/dRm00ifQWcfadiXgqE8k803',price:799,mo:39,pass:''}};
+try{const s=localStorage.getItem('keystone');if(s)db=Object.assign(db,JSON.parse(s))}catch(e){}
+const save=()=>{try{localStorage.setItem('keystone',JSON.stringify(db))}catch(e){}};
+let view='ai',cur=null,pg=0,draft={};
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>'$'+(n||0).toLocaleString();
+const THEMES={Friendly:['#FD5A13','#090708','#FFF6EE'],Professional:['#1F3A5F','#0B1620','#F3F6F9'],Bold:['#6945FE','#090708','#EFEDEF'],Luxury:['#8A6D3B','#14110C','#F7F2E9'],Fresh:['#1E8E5A','#0B1A12','#F1F8F3']};
+
+/* ---------- site generator: brief -> pages -> sections -> HTML ---------- */
+function spec(b){
+  let sv=(b.services||'').split(',').map(s=>s.trim()).filter(Boolean);if(!sv.length)sv=['Quality service'];
+  const n=b.name,c=b.city?` in ${b.city}`:'',ind=b.industry||'local business';
+  const P=[{slug:'home',title:'Home',sections:[
+    {t:'hero',h:`${n}`,p:`${cap(ind)}${c} you can count on. ${b.audience?'Built for '+b.audience+'.':''}`,cta:'Get in touch'},
+    {t:'cards',h:'What we do',items:sv.map(s=>({h:s,p:`Reliable ${s.toLowerCase()} from a team that shows up and does it right.`}))},
+    {t:'band',h:`Ask ${n} for a quote today`,p:'Fast replies. Clear pricing. No surprises.'}]},
+  {slug:'about',title:'About',sections:[{t:'hero',h:`About ${n}`,p:b.extra||`We are a ${ind}${c} focused on honest work and happy customers.`},
+    {t:'cards',h:'Why people choose us',items:[{h:'Local',p:`Proudly serving ${b.city||'our community'}.`},{h:'Reliable',p:'We do what we say, when we say.'},{h:'Fair',p:'Upfront pricing on every job.'}]}]},
+  {slug:'services',title:'Services',sections:[{t:'hero',h:'Services',p:`Everything ${n} offers.`},{t:'cards',h:'',items:sv.map(s=>({h:s,p:`Ask us about ${s.toLowerCase()}. We tailor every job to your needs.`}))}]},
+  {slug:'contact',title:'Contact',sections:[{t:'hero',h:'Contact',p:`Tell ${n} what you need.`},{t:'contact',phone:b.phone,email:b.email,city:b.city}]}];
+  return P}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function renderSite(b,theme){
+  const hx=c=>/^#[0-9a-f]{6}$/i.test(c),[p,i,s]=(b.custom&&b.custom.every(hx)?b.custom:null)||THEMES[theme]||THEMES.Bold,pages=spec(b);
+  const sec=x=>x.t=='hero'?`<section class="h"><h1>${esc(x.h)}</h1><p>${esc(x.p)}</p>${x.cta?'<a class="b" href="#contact">'+esc(x.cta)+'</a>':''}</section>`:
+   x.t=='cards'?`<section class="w">${x.h?'<h2>'+esc(x.h)+'</h2>':''}<div class="g">${x.items.map(c=>`<div class="c"><h3>${esc(c.h)}</h3><p>${esc(c.p)}</p></div>`).join('')}</div></section>`:
+   x.t=='band'?`<section class="band"><h2>${esc(x.h)}</h2><p>${esc(x.p)}</p><a class="b w2" href="#contact">Contact us</a></section>`:
+   `<section class="w"><div class="c">${x.phone?'<h3>Call</h3><p>'+esc(x.phone)+'</p>':''}${x.email?'<h3>Email</h3><p><a href="mailto:'+esc(x.email)+'">'+esc(x.email)+'</a></p>':''}${x.city?'<h3>Location</h3><p>'+esc(x.city)+'</p>':''}</div></section>`;
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(b.name)}</title><style>
+*{box-sizing:border-box}body{margin:0;font:17px/1.6 system-ui,sans-serif;color:${i};background:${s}}
+nav{display:flex;justify-content:space-between;align-items:center;padding:16px 5vw;background:${i};color:#fff;flex-wrap:wrap;gap:8px}nav b{font-size:20px}nav a{color:#fff;margin-left:18px;text-decoration:none}
+.h{padding:10vh 5vw;background:${p};color:#fff}.h h1{font-size:clamp(38px,8vw,84px);line-height:.95;margin:0 0 14px}.h p{font-size:20px;max-width:640px;margin:0 0 22px}
+.b{display:inline-block;background:#fff;color:${i};padding:12px 26px;border-radius:999px;text-decoration:none;font-weight:700}.w2{background:${p};color:#fff}
+.w{padding:7vh 5vw}.w h2{font-size:34px;margin:0 0 20px}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.c{background:#fff;border-radius:16px;box-shadow:0 1px 2px rgba(11,15,26,.06),0 10px 28px rgba(11,15,26,.05);padding:22px;border:1px solid rgba(0,0,0,.08)}.c h3{margin:0 0 6px}.c p{margin:0 0 10px}
+.band{padding:8vh 5vw;background:${i};color:#fff}.band h2{font-size:38px;margin:0 0 8px}.band p{margin:0 0 20px}
+footer{padding:24px 5vw;font-size:14px;opacity:.7}.pg{display:none}.pg.on{display:block}
+</style></head><body><nav><b>${esc(b.name)}</b><div>${pages.map(x=>`<a href="#${x.slug}">${x.title}</a>`).join('')}</div></nav>
+${pages.map(x=>`<div class="pg" id="${x.slug}">${x.sections.map(sec).join('')}</div>`).join('')}
+<footer>&copy; ${new Date().getFullYear()} ${esc(b.name)}</footer>
+<script>function r(){var h=(location.hash||'#home').slice(1);var f=0;document.querySelectorAll('.pg').forEach(function(e){var on=e.id==h;e.classList.toggle('on',on);if(on)f=1});if(!f)document.getElementById('home').classList.add('on')}addEventListener('hashchange',r);r()<\/script></body></html>`}
+
+/* ---------- cold outreach ---------- */
+function emails(p){
+  const a=db.set.agency||'[Your agency]',pay=db.set.pay||'[payment link]',pr=money(p.dealValue||db.set.price),nm=p.contact||'there';
+  return [
+   `Subject: A free website idea for ${p.name}\n\nHi ${nm},\n\nI came across ${p.name}${p.city?' in '+p.city:''} and built a quick demo of what a modern site could look like for you. No cost to look: [demo link]\n\nIf you like it, I can have the full site live this week for ${pr}, with hosting set-up included.\n\n${a}`,
+   `Subject: Re: A free website idea for ${p.name}\n\nHi ${nm},\n\nJust checking you saw the demo. Happy to change colours, copy or pages to match how you work. Want me to book a 10-minute walkthrough?\n\n${a}`,
+   `Subject: Last note: ${p.name} website\n\nHi ${nm},\n\nI'll hold the demo for you through the end of the week. To go ahead, the secure payment link is here: ${pay} (${pr}). I'll start the same day.\n\n${a}`]}
+
+/* ---------- views ---------- */
+function setView(v){view=v;render()}
+db.leads=db.leads||[];
+function lock(){$('#side').innerHTML='<div class="logo">AI<i>U</i></div>';$('#main').innerHTML=`<div class="card" style="max-width:380px"><h1 style="font-size:44px">Admin <i>login</i></h1><label for="pw" style="margin-top:12px">Passcode</label><input id="pw" type="password" onkeydown="if(event.key=='Enter')unlock()"><div class="row" style="margin-top:12px"><button class="btn" onclick="unlock()">Unlock</button></div></div>`}
+function unlock(){if($('#pw').value===db.set.pass){window._ok=1;render()}else alert('Wrong passcode.')}
+function render(){
+  if(db.set.pass&&!window._ok){lock();return}
+  const m=MODS[view];$('#side').innerHTML='<div class="logo">AI<i>U</i></div>'+Object.keys(MODS).map(k=>`<button class="nav ${k==view?'on':''}" ${k==view?`style="background:${MODS[k][1]}"`:''} onclick="setView('${k}')">${MODS[k][0]}</button>`).join('');
+  $('#main').style.setProperty('--tab',m[1]);
+  $('#main').innerHTML=({ai:vAI,studio:vStudio,leads:vLeads,pipeline:vPipe,ads:vAds,revenue:vRev,settings:vSet})[view]();
+  if(view=='studio'&&cur)paint();
+}
+function fld(id,l,v,ph,t){return `<div><label for="${id}">${l}</label><input id="${id}" value="${esc(v)}" placeholder="${ph||''}" ${t||''}></div>`}
+function vStudio(){
+  const d=draft;return `<div class="fade"><h1>Site <i>studio</i></h1><p class="sub">Type a business. Get a four-page site you can sell today.</p>
+  <div class="card"><div class="grid">${fld('f_name','Business name',d.name,'Riverside Plumbing')}${fld('f_industry','Industry',d.industry,'plumber')}${fld('f_city','City',d.city,'Austin')}${fld('f_services','Services (comma separated)',d.services,'Leak repair, Water heaters, Drain cleaning')}${fld('f_audience','Audience',d.audience,'homeowners')}${fld('f_phone','Phone',d.phone)}${fld('f_email','Email',d.email)}
+  <div><label for="f_theme">Look</label><select id="f_theme">${Object.keys(THEMES).map(t=>`<option ${d.theme==t?'selected':''}>${t}</option>`).join('')}</select></div></div>
+  <div class="row" style="margin-top:14px"><button class="btn acc" onclick="gen()">Generate site</button></div></div>
+  ${cur?`<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(cur.b.name)}</b><div class="row"><button class="btn ghost" onclick="dl()">Download HTML</button><button class="btn ghost" onclick="cp(cur.html)">Copy code</button><button class="btn" onclick="client()">Client email + pay link</button></div></div><div class="tabs" id="tabs"></div><iframe id="pv" title="Preview"></iframe><div id="ce"></div></div>`:''}
+  ${db.sites.length?`<div class="card"><b>Saved sites</b>${db.sites.map((s,i)=>`<div class="row" style="padding:6px 0"><span style="flex:1">${esc(s.b.name)}</span><button class="btn ghost" onclick="openSite(${i})">Open</button></div>`).join('')}</div>`:''}</div>`}
+function read(){['name','industry','city','services','audience','phone','email','theme'].forEach(k=>{const e=$('#f_'+k);if(e)draft[k]=e.value})}
+function gen(){read();if(!draft.name.trim()){alert('Enter a business name.');return}
+  cur={b:{...draft},html:renderSite(draft,draft.theme||'Bold')};db.sites.unshift(cur);db.sites=db.sites.slice(0,20);save();render()}
+function openSite(i){cur=db.sites[i];draft={...cur.b};render()}
+function paint(){const P=spec(cur.b);$('#tabs').innerHTML=P.map(p=>`<button class="${p.slug==(window._pg||'home')?'on':''}" onclick="window._pg='${p.slug}';paint()">${p.title}</button>`).join('');
+  $('#pv').srcdoc=cur.html.replace("(location.hash||'#home')","('#"+(window._pg||'home')+"')")}
+function dl(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([cur.html],{type:'text/html'}));a.download=(cur.b.name||'site').toLowerCase().replace(/\W+/g,'-')+'.html';a.click()}
+function cp(t){try{navigator.clipboard.writeText(t)}catch(e){}}
+function client(){const pay=db.set.pay||'[add your payment link in Settings]',pr=money(db.set.price);
+  const t=`Subject: Your new ${cur.b.name} website is ready to review\n\nHi,\n\nYour site is ready. Attached is the full site (open the HTML file in any browser). Once you're happy, pay securely here: ${pay}\nPrice: ${pr}\n\nI'll publish it as soon as payment lands.\n\n${db.set.agency||''}`;
+  $('#ce').innerHTML=`<pre>${esc(t)}</pre><button class="btn ghost" onclick="cp(${esc(JSON.stringify(t)).replace(/'/g,'&#39;')})">Copy email</button>`}
+
+function vPipe(){
+  const st=['new','contacted','demo','proposal','won','lost'];
+  return `<div class="fade" style="--c:var(--blaze)"><h1>Sales <i>pipeline</i></h1><p class="sub">Find local businesses with weak sites. Demo, email, close.</p>
+  <div class="card"><div class="grid">${fld('p_name','Business',"",'Joe\'s Auto')}${fld('p_contact','Contact',"")}${fld('p_email','Email',"")}${fld('p_city','City',"")}${fld('p_ind','Industry',"")}${fld('p_val','Deal value ($)',db.set.price,'','type="number"')}</div>
+  <div class="row" style="margin-top:14px"><button class="btn acc" onclick="addP()">Add prospect</button></div></div>
+  ${db.prospects.map((p,i)=>`<div class="card"><div class="row" style="justify-content:space-between"><div><b>${esc(p.name)}</b> <span class="pill">${p.stage}</span><div style="color:var(--stone)">${esc([p.contact,p.city,p.industry].filter(Boolean).join(' / '))}</div></div><div class="mono">${money(p.dealValue)}</div></div>
+  <div class="row" style="margin-top:10px"><select style="width:auto" onchange="stage(${i},this.value)">${st.map(s=>`<option ${s==p.stage?'selected':''}>${s}</option>`).join('')}</select><button class="btn acc" onclick="demo(${i})">Build demo site</button><button class="btn ghost" onclick="seq(${i})">Cold email sequence</button><button class="btn ghost" onclick="won(${i})">Mark won</button></div><div id="s${i}"></div></div>`).join('')||'<div class="card">No prospects yet. Add your first business above.</div>'}</div>`}
+function addP(){const g=i=>$('#p_'+i).value;if(!g('name').trim())return;db.prospects.unshift({name:g('name'),contact:g('contact'),email:g('email'),city:g('city'),industry:g('ind'),dealValue:+g('val')||0,stage:'new'});save();render()}
+function stage(i,s){db.prospects[i].stage=s;save();render()}
+function won(i){const v=prompt('Deal value ($)',db.prospects[i].dealValue);if(v===null)return;db.prospects[i].dealValue=+v||0;db.prospects[i].stage='won';save();render()}
+function demo(i){const p=db.prospects[i];draft={name:p.name,industry:p.industry,city:p.city,email:p.email,services:'',theme:'Bold'};cur=null;if(p.stage=='new')p.stage='demo';save();setView('studio')}
+function seq(i){$('#s'+i).innerHTML=emails(db.prospects[i]).map(e=>`<pre>${esc(e)}</pre><button class="btn ghost" onclick="cp(${esc(JSON.stringify(e)).replace(/'/g,'&#39;')})">Copy</button>`).join('')}
+
+const SIGNS=['No website','Not mobile friendly','No HTTPS padlock','Copyright year 3+ years old','Looks dated or slow','No contact form or booking'];
+function vLeads(){const d=window._l||{ind:'',city:''};
+  const L=[...db.leads].sort((a,b)=>b.score-a.score);
+  return `<div class="fade" style="--tab:var(--blaze)"><h1>Lead <i>finder</i></h1><p class="sub">Search a niche, check each site, score it. 4 or more checks is a hot lead.</p>
+  <div class="card"><div class="grid">${fld('l_ind','Industry',d.ind,'roofers')}${fld('l_city','City',d.city,'Tampa')}</div>
+  <div class="row" style="margin-top:14px"><button class="btn acc" style="--c:var(--blaze)" onclick="srch('maps')">Google Maps</button><button class="btn ghost" onclick="srch('g')">Google</button><button class="btn ghost" onclick="srch('yelp')">Yelp</button></div>
+  <p class="sub" style="margin:10px 0 0">On Maps, open listings with no Website button or only a Facebook page. Those are your easiest sales.</p></div>
+  <div class="card"><b>Score a business</b><div class="grid" style="margin-top:10px">${fld('lb_name','Business')}${fld('lb_contact','Contact')}${fld('lb_email','Email')}${fld('lb_phone','Phone')}${fld('lb_url','Current website')}</div>
+  <div class="row" style="margin-top:12px">${SIGNS.map((s,i)=>`<label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" class="sg" style="width:auto"> ${s}</label>`).join('')}</div>
+  <div class="row" style="margin-top:14px"><button class="btn acc" style="--c:var(--blaze)" onclick="addL()">Save lead</button></div></div>
+  ${L.map(l=>`<div class="card"><div class="row" style="justify-content:space-between"><div><b>${esc(l.name)}</b> <span class="pill" style="background:${l.score>=4?'var(--blaze)':'var(--paper)'};color:${l.score>=4?'#fff':'inherit'}">${l.score>=4?'Hot':'Warm'} ${l.score}/6</span><div style="color:var(--stone)">${esc([l.contact,l.phone,l.email,l.url].filter(Boolean).join(' / '))}</div></div><div class="row"><button class="btn acc" style="--c:var(--blaze)" onclick="toPipe('${l.id}')">Send to pipeline</button><button class="btn ghost" onclick="delL('${l.id}')">Remove</button></div></div></div>`).join('')||'<div class="card">No leads saved yet.</div>'}</div>`}
+function srch(k){const i=$('#l_ind').value,c=$('#l_city').value;window._l={ind:i,city:c};const q=encodeURIComponent((i+' '+c).trim()),u={maps:'https://www.google.com/maps/search/'+q,g:'https://www.google.com/search?q='+q+'+website',yelp:'https://www.yelp.com/search?find_desc='+encodeURIComponent(i)+'&find_loc='+encodeURIComponent(c)}[k];window.open(u,'_blank','noopener')}
+function addL(){const g=i=>$('#lb_'+i).value;if(!g('name').trim())return;const sc=[...document.querySelectorAll('.sg')].filter(x=>x.checked).length;
+  db.leads.push({id:String(Date.now()),name:g('name'),contact:g('contact'),email:g('email'),phone:g('phone'),url:g('url'),score:sc});save();render()}
+function delL(id){db.leads=db.leads.filter(l=>l.id!=id);save();render()}
+function toPipe(id){const l=db.leads.find(x=>x.id==id);db.prospects.unshift({name:l.name,contact:l.contact,email:l.email,city:(window._l||{}).city||'',industry:(window._l||{}).ind||'',dealValue:db.set.price,stage:'new'});db.leads=db.leads.filter(x=>x.id!=id);save();setView('pipeline')}
+
+function ads(){const a=db.set.agency||'[Your agency]',pr=money(db.set.price),mo=db.set.mo?money(db.set.mo)+'/month':'',pay=db.set.pay||'[payment link]',n=window._niche||'local businesses',
+  plan=mo?` Optional care plan: hosting, edits and support for ${mo}.`:'';
+  return [
+  ['Facebook post / Marketplace',`Need a website for your ${n} business? ${a} builds a clean, mobile-friendly 4-page site in 48 hours for ${pr}.${plan} Message me for a free demo built with your business name.`],
+  ['Google Search ad',`Headlines (30 characters max each):\n1. Websites for ${n}\n2. Live in 48 Hours\n3. Free Demo First\n\nDescriptions (90 characters max each):\n1. Mobile-friendly 4-page site, ${pr}. Free demo first.\n2. Live in 48 hours. Ask ${a} today.\n\nTrim any line that runs over the limit before you paste it into Google Ads.`],
+  ['Craigslist (services)',`Title: Professional website for your ${n} business, ${pr}, live in 48 hours\n\nI design and build fast, mobile-friendly websites: Home, About, Services and Contact pages. You get a free demo before you pay.${plan}\nReply with your business name and I will send a preview.\n${a}`],
+  ['Fiverr gig',`Title: I will build a professional 4-page website for your ${n} business\n\nWhat you get: custom design, mobile-friendly pages, contact section, files delivered as ready-to-host HTML.${plan}\nSend your business name and services and I start right away.`],
+  ['Upwork proposal',`Hi, I saw you need a website. I build 4-page business sites and can send a working demo with your business name before we start. Price: ${pr}, delivery in 2 days. ${a}`],
+  ['Instagram caption',`Your website is your storefront. We build ${n} sites that look sharp on every phone and bring in calls. DM "SITE" for a free demo. ${pr}, live in days. #smallbusiness #webdesign #${n.replace(/\W/g,'')}`],
+  ['LinkedIn post',`Small businesses lose customers to outdated websites every day. I build modern 4-page sites for ${n} in 48 hours for ${pr}.${plan} Comment or message "demo" and I will send one built for your business.`],
+  ['X / Twitter',`Outdated website costing you calls? Modern 4-page site for your ${n} business, ${pr}, live in 48 hours. Free demo first. DM me.`],
+  ['Nextdoor',`Neighbours with a business: I build simple, fast websites for local ${n}. Free demo, ${pr}, no surprises. Message me.`],
+  ['After they say yes',`Great. Pay securely here: ${pay} (${pr}). I start the same day and send the files within 48 hours.`]]}
+function vAds(){const A=ads();return `<div class="fade" style="--tab:var(--lime)"><h1>Ads & <i>listings</i></h1><p class="sub">Copy ready to post. Uses your agency name, price and payment link from Settings.</p>
+  <div class="card"><div class="grid">${fld('a_niche','Niche you are targeting',window._niche,'roofers')}</div><div class="row" style="margin-top:14px"><button class="btn acc" style="--c:var(--lime);color:var(--ink)" onclick="window._niche=$('#a_niche').value;render()">Update copy</button><button class="btn ghost" onclick="dlAds()">Download all (.txt)</button></div></div>
+  ${A.map(x=>`<div class="card"><b>${x[0]}</b><pre>${esc(x[1])}</pre><button class="btn ghost" onclick="cp(${esc(JSON.stringify(x[1])).replace(/'/g,'&#39;')})">Copy</button></div>`).join('')}</div>`}
+function dlAds(){const t=ads().map(x=>x[0].toUpperCase()+'\n'+x[1]).join('\n\n----------\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download='keystone-listings.txt';a.click()}
+
+
+const AIM={leads:['Find leads','Roofers in Tampa with outdated websites'],ads:['Write ads','Google and Facebook ads for a Tampa roofing company'],video:['Video plan','30-second video ad for a roofing company'],design:['Change design','Make my open site dark blue and gold, more premium'],write:['Write copy','Rewrite the About page so it sounds friendlier']};
+let aiMode='leads',aiData=null;
+function vAI(){return `<div class="fade"><h1>AI <i>module</i></h1><p class="sub">One prompt box for leads, ads, video plans, site design and copy.</p>
+<div class="card"><div class="tabs">${Object.keys(AIM).map(k=>`<button class="${k==aiMode?'on':''}" onclick="aiMode='${k}';render()">${AIM[k][0]}</button>`).join('')}</div>
+<label for="ai_p">Your prompt</label><textarea id="ai_p" rows="3" placeholder="${esc(AIM[aiMode][1])}"></textarea>
+<div class="row" style="margin-top:12px"><button class="btn acc" onclick="aiRun()">Run</button></div>
+<p class="sub" style="margin:10px 0 0">${aiMode=='design'||aiMode=='write'?(cur?'Using your open site: '+esc(cur.b.name):'Generate or open a site in Studio first.'):aiMode=='video'?'Writes the script and shot list. It does not render video files.':aiMode=='leads'?'Searches the web. Verify every lead before contacting anyone.':'Review everything before you post it.'}</p></div><div id="aiout"></div></div>`}
+function aiParse(t){try{return JSON.parse(t.replace(/^```(?:json)?|```$/g,'').trim())}catch(e){return null}}
+async function aiRun(){const prompt=$('#ai_p').value.trim();if(!prompt)return;$('#aiout').innerHTML='<div class="card">Working...</div>';
+ const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:aiMode,prompt,context:(aiMode=='design'||aiMode=='write')&&cur?JSON.stringify(cur.b):''})});
+ const d=await r.json().catch(()=>({}));if(!r.ok){$('#aiout').innerHTML=`<div class="card">${esc(d.error||'AI request failed.')}</div>`;return}
+ const j=aiMode=='write'?null:aiParse(d.text);aiData=j;const raw=`<div class="card"><pre>${esc(d.text)}</pre><button class="btn ghost" onclick="cp(aiRaw)">Copy</button></div>`;window.aiRaw=d.text;let h=raw;
+ if(aiMode=='leads'&&Array.isArray(j))h=j.map((l,i)=>`<div class="card"><b>${esc(l.name)}</b> <span class="pill">${esc(l.city)}</span><div style="color:var(--stone)">${esc(l.why)}</div><div class="mono" style="font-size:13px">${esc(l.website||'no website found')} ${esc(l.contact)}</div><div class="row" style="margin-top:8px"><button class="btn acc" style="--c:var(--blaze)" onclick="aiLead(${i})">Add to pipeline</button></div></div>`).join('')||raw;
+ else if(aiMode=='ads'&&j&&j.google)h=`<div class="card"><b>Google Search</b><pre>${esc((j.google.headlines||[]).map(x=>x+' ('+x.length+')').join('\n')+'\n\n'+(j.google.descriptions||[]).map(x=>x+' ('+x.length+')').join('\n'))}</pre></div>`+['facebook','instagram','linkedin'].filter(k=>j[k]).map(k=>`<div class="card"><b>${k}</b><pre>${esc(j[k])}</pre></div>`).join('')+(j.email?`<div class="card"><b>Email</b><pre>${esc(j.email.subject+'\n\n'+j.email.body)}</pre></div>`:'')+raw;
+ else if(aiMode=='video'&&j&&Array.isArray(j.shots))h=`<div class="card"><b>${esc(j.title)}</b><p>Hook: ${esc(j.hook)}</p>${j.shots.map((s,n)=>`<pre>Scene ${n+1} (${esc(s.seconds)}s)\nVisual: ${esc(s.visual)}\nVoiceover: ${esc(s.voiceover)}</pre>`).join('')}<p>Captions: ${esc(j.captions)}</p><p>CTA: ${esc(j.cta)}</p></div>`;
+ else if(aiMode=='design'&&j&&[j.primary,j.ink,j.surface].every(c=>/^#[0-9a-f]{6}$/i.test(c))){h=`<div class="card"><div class="row">${[j.primary,j.ink,j.surface].map(c=>`<span style="width:56px;height:56px;border-radius:12px;background:${c};border:1px solid rgba(9,7,8,.2)"></span>`).join('')}</div><p>${esc(j.note)}</p>${cur?'<button class="btn acc" onclick="aiApply()">Apply to my site</button>':'<p>Open a site in Studio first.</p>'}</div>`}
+ $('#aiout').innerHTML=h}
+function aiLead(i){const l=aiData[i];db.prospects.unshift({name:l.name,contact:l.contact||'',email:'',city:l.city||'',industry:'',dealValue:db.set.price,stage:'new',notes:l.why});save();alert('Added to Pipeline.')}
+function aiApply(){const j=aiData,hx=c=>/^#[0-9a-f]{6}$/i.test(c);if(!cur||!j)return;cur.b.custom=[j.primary,j.ink,j.surface].filter(hx);if(j.services)cur.b.services=String(j.services).slice(0,300);if(j.tagline)cur.b.extra=String(j.tagline).slice(0,300);
+ cur.html=renderSite(cur.b,cur.b.theme);save();setView('studio')}
+
+function vRev(){const w=db.prospects.filter(p=>p.stage=='won'),tot=w.reduce((a,p)=>a+p.dealValue,0),open=db.prospects.filter(p=>!['won','lost'].includes(p.stage)).reduce((a,p)=>a+p.dealValue,0);
+  return `<div class="fade" style="--tab:var(--lime)"><h1>Reve<i>nue</i></h1><p class="sub">What you have closed and what is still open.</p>
+  <div class="grid"><div class="card"><label>Won</label><div class="stat mono">${money(tot)}</div></div><div class="card"><label>Open pipeline</label><div class="stat mono">${money(open)}</div></div><div class="card"><label>Sites built</label><div class="stat mono">${db.sites.length}</div></div></div>
+  <div class="card"><b>Today's plan</b><pre>1. Settings: add your Stripe payment link and price.\n2. Pipeline: add 10 local businesses with outdated sites.\n3. Build a demo for each and send email 1.\n4. Follow up with emails 2 and 3 in 2 and 5 days.</pre></div></div>`}
+function vSet(){const s=db.set;return `<div class="fade" style="--tab:var(--lilac)"><h1>Set<i>tings</i></h1><p class="sub">Used in every client and prospect email.</p><div class="card"><div class="grid">${fld('s_agency','Agency name',s.agency)}${fld('s_pay','Stripe payment link',s.pay,'https://buy.stripe.com/...')}${fld('s_price','Default price ($)',s.price,'','type="number"')}${fld('s_mo','Monthly care plan ($/mo)',s.mo,'49','type="number"')}${fld('s_sub','Subscription payment link',s.sub,'https://buy.stripe.com/...')}${fld('s_pass','Admin passcode (optional)',s.pass,'','type="password"')}</div><div class="row" style="margin-top:14px"><button class="btn acc" style="--c:var(--lilac)" onclick="saveSet()">Save settings</button></div></div><p class="sub">Data is stored in this browser only. Download sites to keep them.</p></div>`}
+function saveSet(){db.set={agency:$('#s_agency').value,pay:$('#s_pay').value,price:+$('#s_price').value||1500,mo:+$('#s_mo').value||0,sub:$('#s_sub').value,pass:$('#s_pass').value};save();alert('Settings saved')}
+render();
+</script></body></html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>AIU: Amp It Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0B0F1A;--paper:#F4F6FA;--volt:#4F5BFF;--blaze:#FF7A3D;--lime:#19E6B4;--stone:#5B6475}
+*{box-sizing:border-box}body{margin:0;font:500 16px/1.5 'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink)}
+.band{padding:8vh 6vw}.hero{background-color:var(--ink);background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px;color:#fff}
+h1,h2{font:800 clamp(48px,11vw,120px)/1.05 'Inter',system-ui,sans-serif;margin:0 0 16px}h2{font-size:clamp(36px,7vw,64px)}
+i{color:var(--lime)}
+.btn{display:inline-block;border:0;border-radius:999px;background:var(--ink);color:var(--paper);padding:12px 24px;font:600 15px 'Inter',sans-serif;cursor:pointer;text-decoration:none}
+.btn.l{background:var(--lime);color:var(--ink)}.btn.g{background:none;border:1px solid var(--ink);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:20px}
+.card{background:#fff;border:1px solid rgba(9,7,8,.1);border-radius:16px;box-shadow:0 1px 2px rgba(11,15,26,.06),0 10px 28px rgba(11,15,26,.05);padding:22px}.card b{font-size:20px}.price{font:800 56px/1 'Inter',system-ui,sans-serif;}
+input{width:100%;border:1px solid rgba(9,7,8,.15);border-radius:10px;padding:12px;font:inherit;margin:4px 0 12px}input:focus{outline:2px solid var(--volt)}
+label{font-size:13px;font-weight:600;color:var(--stone)}.sec{display:none}.sec.on{display:block}
+#msg{color:#b00020;min-height:22px}.row{display:flex;gap:8px;flex-wrap:wrap}
+h1,h2,.stat,.logo,.price{letter-spacing:-.035em}h1 i,h2 i{font-style:normal;color:var(--tab,var(--volt))}.logo i{font-style:normal}</style></head><body>
+<div class="band hero"><h1>AI<i>U</i></h1><p style="font-size:20px;max-width:620px">AIU means Amp It Up. One AI workspace to find leads, build websites, write ads and plan videos. Describe what you want, then refine it with plain-language prompts.</p><a class="btn l" href="#plans">See plans</a> <a class="btn" style="background:#fff;color:var(--ink)" href="#login" onclick="show('login')">Sign in</a></div>
+<div class="band sec on" id="plans"><h2>Plans</h2><div class="grid"><div class="card"><b>AIU</b><p>An AI module that finds businesses with weak or missing websites, builds multi-page sites, restyles them from a prompt, and writes ads and video scripts. Includes a sales pipeline and ready-to-post listings.</p></div><div class="card"><b>AIU+</b><p>Everything in AIU, plus a 1:1 setup call to plan how your site and your paid search ads (PPC) work together, so your ad copy matches the pages visitors land on.</p></div></div><div class="grid" id="grid"></div></div>
+<div class="band sec" id="login"><h2 id="ltitle">Sign in</h2><div class="card" style="max-width:420px">
+<div id="nameRow" style="display:none"><label for="n">Name</label><input id="n" autocomplete="name"></div>
+<label for="e">Email</label><input id="e" type="email" autocomplete="email"><label for="p">Password (10+ characters)</label><input id="p" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')go()">
+<div id="msg" role="alert"></div><div class="row"><button class="btn" onclick="go()" id="gobtn">Sign in</button><button class="btn g" onclick="toggle()" id="tbtn">Create account</button></div></div></div>
+<div class="band sec" id="account"><h2>Account</h2><div class="card" style="max-width:520px"><p id="st">Loading...</p><div class="row" id="acts"></div></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const PLANS=[['basic','AIU Basic',20,'Full AI module, 20 AI requests per day'],['pro','AIU Pro',50,'Everything in Basic, 100 AI requests per day, priority email support'],['proplus','AIU+',100,'Everything in Pro, 300 AI requests per day, 1:1 setup call']];
+$('#grid').innerHTML=PLANS.map(p=>`<div class="card"><b>${p[1]}</b><div class="price">$${p[2]}<span style="font-size:18px">/mo</span></div><p>${p[3]}</p><button class="btn" onclick="pick('${p[0]}')">Choose ${p[1]}</button></div>`).join('');
+let signup=false;
+function show(id){document.querySelectorAll('.sec').forEach(e=>e.classList.toggle('on',e.id==id));if(id=='account')acct();scrollTo(0,0)}
+function route(){const h=location.hash.slice(1);show(['login','account'].includes(h)?h:'plans')}addEventListener('hashchange',route);route();
+async function api(path,body){const r=await fetch(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return{ok:r.ok,status:r.status,data:await r.json().catch(()=>({}))}}
+function toggle(){signup=!signup;$('#nameRow').style.display=signup?'block':'none';$('#ltitle').textContent=signup?'Create account':'Sign in';$('#gobtn').textContent=signup?'Create account':'Sign in';$('#tbtn').textContent=signup?'I have an account':'Create account';$('#msg').textContent=''}
+function want(p){try{if(p)sessionStorage.setItem('plan',p);return sessionStorage.getItem('plan')}catch(e){return p}}
+async function pick(p){want(p);const s=await api('/api/billing/status');if(s.ok)return checkout(p);location.hash='login';show('login')}
+async function checkout(p){const r=await api('/api/billing/checkout',{plan:p});if(r.ok&&r.data.url){try{sessionStorage.removeItem('plan')}catch(e){}location.href=r.data.url}else{location.hash='account';show('account')}}
+async function go(){$('#msg').textContent='';const email=$('#e').value.trim(),password=$('#p').value;
+ const r=signup?await api('/api/auth/sign-up/email',{name:$('#n').value.trim()||email,email,password}):await api('/api/auth/sign-in/email',{email,password});
+ if(!r.ok){$('#msg').textContent=r.data.message||'That did not work. Check your details and try again.';return}
+ const p=want();if(p)return checkout(p);location.hash='account';show('account')}
+async function acct(){const s=await api('/api/billing/status');
+ if(!s.ok){$('#st').textContent='You are not signed in.';$('#acts').innerHTML='<button class="btn" onclick="location.hash=\'login\';show(\'login\')">Sign in</button>';return}
+ const d=s.data;$('#st').textContent=d.isAdmin?'Owner account. Full access.':d.active?'Your subscription is active.':'No active subscription yet.';
+ $('#acts').innerHTML=(d.active?'<a class="btn l" href="/app">Open AIU</a>':PLANS.map(p=>`<button class="btn" onclick="pick('${p[0]}')">${p[1]} $${p[2]}/mo</button>`).join(''))+(d.status!='none'&&!d.isAdmin?'<button class="btn g" onclick="portal()">Manage billing</button>':'')+'<button class="btn g" onclick="out()">Sign out</button>'}
+async function portal(){const r=await api('/api/billing/portal',{});if(r.ok&&r.data.url)location.href=r.data.url}
+async function out(){await api('/api/auth/sign-out',{});location.hash='';show('plans')}
+</script></body></html>
